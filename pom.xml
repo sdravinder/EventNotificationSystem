@@ -12,7 +12,8 @@
     <artifactId>EventNotificationSystem</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>EventNotificationSystem</name>
-    <description>EventNotificationSystem</description>
+    <description>A Java-based Event Notification System for EMAIL, SMS, and PUSH notifications</description>
+    <packaging>jar</packaging>
     <url/>
     <licenses>
         <license/>
