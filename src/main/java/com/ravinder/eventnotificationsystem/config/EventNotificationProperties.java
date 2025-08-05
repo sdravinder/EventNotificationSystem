@@ -45,21 +45,21 @@ public class EventNotificationProperties {
         private Email email;
         private Sms sms;
         private Push push;
-        private int failureRatePercent = 10;
+        private int failureRatePercent;
 
         @Data
         public static class Email {
-            private int delaySeconds = 5;
+            private int delaySeconds;
         }
 
         @Data
         public static class Sms {
-            private int delaySeconds = 3;
+            private int delaySeconds;
         }
 
         @Data
         public static class Push {
-            private int delaySeconds = 2;
+            private int delaySeconds;
         }
     }
 }
