@@ -7,6 +7,7 @@ import com.ravinder.eventnotificationsystem.model.Event;
 import com.ravinder.eventnotificationsystem.model.EventStatus;
 import com.ravinder.eventnotificationsystem.model.EventType;
 import com.ravinder.eventnotificationsystem.queue.EventQueueManager;
+import com.ravinder.eventnotificationsystem.service.CallbackService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,6 +31,9 @@ class EventProcessorTest {
     @Mock
     private EventQueueManager queueManager;
 
+    @Mock
+    private CallbackService callbackService;
+
     private TestEventProcessor processor;
     private BlockingQueue<Event> testQueue;
 
@@ -41,9 +45,10 @@ class EventProcessorTest {
         private int processCallCount = 0;
 
         public TestEventProcessor(EventQueueManager queueManager,
+                                  CallbackService callbackService,
                                   int processingDelaySeconds,
                                   int failureRatePercent) {
-            super(queueManager, EventType.EMAIL, processingDelaySeconds, failureRatePercent);
+            super(queueManager, callbackService, EventType.EMAIL, processingDelaySeconds, failureRatePercent);
         }
 
         @Override
@@ -68,27 +73,27 @@ class EventProcessorTest {
         testQueue = new LinkedBlockingQueue<>();
         lenient().when(queueManager.dequeue(EventType.EMAIL)).thenAnswer(invocation -> testQueue.take());
 
-        processor = new TestEventProcessor(queueManager, 0, 0); // No delay, no random failures for testing
+        processor = new TestEventProcessor(queueManager, callbackService, 0, 0); // No delay, no random failures for testing
     }
 
     @Test
     void testConstructorValidation() {
         // Test null queue manager
-        assertThatThrownBy(() -> new TestEventProcessor(null, 5, 10))
+        assertThatThrownBy(() -> new TestEventProcessor(null, callbackService, 5, 10))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Queue manager cannot be null");
 
         // Test negative processing delay
-        assertThatThrownBy(() -> new TestEventProcessor(queueManager, -1, 10))
+        assertThatThrownBy(() -> new TestEventProcessor(queueManager, callbackService, -1, 10))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Processing delay cannot be negative");
 
         // Test invalid failure rate
-        assertThatThrownBy(() -> new TestEventProcessor(queueManager, 5, -1))
+        assertThatThrownBy(() -> new TestEventProcessor(queueManager, callbackService, 5, -1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Failure rate must be between 0 and 100");
 
-        assertThatThrownBy(() -> new TestEventProcessor(queueManager, 5, 101))
+        assertThatThrownBy(() -> new TestEventProcessor(queueManager, callbackService, 5, 101))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Failure rate must be between 0 and 100");
     }
@@ -214,7 +219,7 @@ class EventProcessorTest {
     @Test
     void testRandomFailureSimulation() throws InterruptedException {
         // Create processor with 100% failure rate
-        TestEventProcessor failureProcessor = new TestEventProcessor(queueManager, 0, 100);
+        TestEventProcessor failureProcessor = new TestEventProcessor(queueManager, callbackService, 0, 100);
 
         // Create test event
         EmailPayload payload = new EmailPayload(
@@ -244,7 +249,7 @@ class EventProcessorTest {
     @Test
     void testProcessingDelay() throws InterruptedException {
         // Create processor with 1 second delay
-        TestEventProcessor delayProcessor = new TestEventProcessor(queueManager, 1, 0);
+        TestEventProcessor delayProcessor = new TestEventProcessor(queueManager, callbackService, 1, 0);
 
         // Create test event
         EmailPayload payload = new EmailPayload(

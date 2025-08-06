@@ -7,6 +7,7 @@ import com.ravinder.eventnotificationsystem.model.EventType;
 import com.ravinder.eventnotificationsystem.model.SmsEvent;
 import com.ravinder.eventnotificationsystem.model.SmsPayload;
 import com.ravinder.eventnotificationsystem.queue.EventQueueManager;
+import com.ravinder.eventnotificationsystem.service.CallbackService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,9 @@ class SmsEventProcessorTest {
 
     @Mock
     private EventQueueManager queueManager;
+
+    @Mock
+    private CallbackService callbackService;
 
     @Mock
     private EventNotificationProperties properties;
@@ -52,7 +56,7 @@ class SmsEventProcessorTest {
         smsQueue = new LinkedBlockingQueue<>();
         lenient().when(queueManager.dequeue(EventType.SMS)).thenAnswer(invocation -> smsQueue.take());
 
-        processor = new SmsEventProcessor(queueManager, properties);
+        processor = new SmsEventProcessor(queueManager, callbackService, properties);
     }
 
     @Test
@@ -419,7 +423,7 @@ class SmsEventProcessorTest {
 
         for (int i = 0; i < validPhoneNumbers.length; i++) {
             // Reset processor for each test
-            processor = new SmsEventProcessor(queueManager, properties);
+            processor = new SmsEventProcessor(queueManager, callbackService, properties);
             smsQueue.clear();
 
             SmsPayload payload = new SmsPayload(
@@ -456,7 +460,7 @@ class SmsEventProcessorTest {
 
         for (int i = 0; i < invalidPhoneNumbers.length; i++) {
             // Reset processor for each test
-            processor = new SmsEventProcessor(queueManager, properties);
+            processor = new SmsEventProcessor(queueManager, callbackService, properties);
             smsQueue.clear();
 
             SmsPayload payload = new SmsPayload(
@@ -491,7 +495,7 @@ class SmsEventProcessorTest {
         assertThat(event1.getStatus()).isEqualTo(EventStatus.COMPLETED);
 
         // Reset for next test
-        processor = new SmsEventProcessor(queueManager, properties);
+        processor = new SmsEventProcessor(queueManager, callbackService, properties);
         smsQueue.clear();
 
         // Test maximum valid message length (160 characters)

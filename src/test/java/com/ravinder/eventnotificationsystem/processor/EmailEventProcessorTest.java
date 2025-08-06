@@ -7,6 +7,7 @@ import com.ravinder.eventnotificationsystem.model.EmailPayload;
 import com.ravinder.eventnotificationsystem.model.EventStatus;
 import com.ravinder.eventnotificationsystem.model.EventType;
 import com.ravinder.eventnotificationsystem.queue.EventQueueManager;
+import com.ravinder.eventnotificationsystem.service.CallbackService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,9 @@ class EmailEventProcessorTest {
 
     @Mock
     private EventQueueManager queueManager;
+
+    @Mock
+    private CallbackService callbackService;
 
     @Mock
     private EventNotificationProperties properties;
@@ -52,7 +56,7 @@ class EmailEventProcessorTest {
         emailQueue = new LinkedBlockingQueue<>();
         lenient().when(queueManager.dequeue(EventType.EMAIL)).thenAnswer(invocation -> emailQueue.take());
 
-        processor = new EmailEventProcessor(queueManager, properties);
+        processor = new EmailEventProcessor(queueManager, callbackService, properties);
     }
 
     @Test

@@ -7,6 +7,7 @@ import com.ravinder.eventnotificationsystem.model.EventType;
 import com.ravinder.eventnotificationsystem.model.PushEvent;
 import com.ravinder.eventnotificationsystem.model.PushPayload;
 import com.ravinder.eventnotificationsystem.queue.EventQueueManager;
+import com.ravinder.eventnotificationsystem.service.CallbackService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +39,9 @@ class PushEventProcessorTest {
     @Mock
     private EventNotificationProperties.Processing.Push pushProcessingProperties;
 
+    @Mock
+    private CallbackService callbackService;
+
     private PushEventProcessor processor;
     private BlockingQueue<PushEvent> pushQueue;
 
@@ -52,7 +56,7 @@ class PushEventProcessorTest {
         pushQueue = new LinkedBlockingQueue<>();
         lenient().when(queueManager.dequeue(EventType.PUSH)).thenAnswer(invocation -> pushQueue.take());
 
-        processor = new PushEventProcessor(queueManager, properties);
+        processor = new PushEventProcessor(queueManager, callbackService, properties);
     }
 
     @Test
@@ -373,7 +377,7 @@ class PushEventProcessorTest {
         assertThat(event1.getStatus()).isEqualTo(EventStatus.COMPLETED);
 
         // Reset for next test
-        processor = new PushEventProcessor(queueManager, properties);
+        processor = new PushEventProcessor(queueManager, callbackService, properties);
         pushQueue.clear();
 
         // Test maximum valid device ID length (255 characters)
@@ -407,7 +411,7 @@ class PushEventProcessorTest {
         assertThat(event1.getStatus()).isEqualTo(EventStatus.COMPLETED);
 
         // Reset for next test
-        processor = new PushEventProcessor(queueManager, properties);
+        processor = new PushEventProcessor(queueManager, callbackService, properties);
         pushQueue.clear();
 
         // Test maximum valid message length (500 characters)
