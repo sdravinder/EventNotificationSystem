@@ -1,36 +1,6 @@
 # Event Notification System
 
-A Java-based Event Notification System built with Spring Boot that processes EMAIL, SMS, and PUSH notifications asynchronously with FIFO ordering and configurable processing delays.
-
-## Features
-
-### Phase 1: Project Foundation ✅
-- **Spring Boot Application**: RESTful API with comprehensive configuration
-- **Domain Models**: Event hierarchy with EmailEvent, SmsEvent, and PushEvent
-- **DTOs**: Request/Response objects for API communication
-- **Configuration**: Type-safe configuration properties with validation
-- **Event Factory**: Factory pattern for creating events from requests
-
-### Phase 2: Queue & Processing Infrastructure ✅
-- **EventQueueManager**: Thread-safe queue management with separate queues per event type
-  - FIFO processing guarantee using LinkedBlockingQueue
-  - Configurable queue capacities
-  - JMX monitoring for queue sizes and metrics
-  
-- **Event Processors**: Abstract base class with concrete implementations
-  - **EmailEventProcessor**: 5-second processing delay
-  - **SmsEventProcessor**: 3-second processing delay  
-  - **PushEventProcessor**: 2-second processing delay
-  - Random failure simulation (10% configurable rate)
-  - Template Method pattern for common processing logic
-  - Strategy pattern for event-type-specific processing
-
-- **Processing Features**:
-  - Thread-safe event processing
-  - Random failure simulation (10% default rate)
-  - Failed events marked as FAILED and proceed (no retries)
-  - JMX metrics for processing rates and failure tracking
-  - Comprehensive error handling and logging
+A Java-based Event Notification System built with Spring Boot that processes EMAIL, SMS, and PUSH notifications asynchronously with FIFO ordering, configurable processing delays, REST API endpoints, and callback notifications.
 
 ## Architecture
 
@@ -73,6 +43,15 @@ event.queue.sms.capacity=1000
 event.queue.push.capacity=1000
 ```
 
+### Callback Configuration
+```properties
+# Callback retry and timeout settings
+callback.retry.maxAttempts=3
+callback.retry.delayMs=1000
+callback.timeout.connectionMs=5000
+callback.timeout.readMs=10000
+```
+
 ### JMX Monitoring
 The system exposes JMX metrics for monitoring:
 - Queue sizes per event type
@@ -108,15 +87,48 @@ Access via JConsole or other JMX tools at:
 
 ## Testing
 
-Comprehensive unit test coverage including:
-- **EventQueueManager**: Queue operations, FIFO ordering, capacity limits
-- **EventProcessor**: Template method pattern, failure simulation, metrics
-- **Concrete Processors**: Event-specific validation and processing logic
-- **Thread Safety**: Concurrent access and processing verification
-
 Run tests:
 ```bash
 mvn test
+```
+
+## API Documentation
+
+### POST /api/events
+Submit a new event for processing.
+
+**Request Body:**
+```json
+{
+  "eventType": "EMAIL|SMS|PUSH",
+  "payload": {
+    // Event-specific payload (see examples below)
+  },
+  "callbackUrl": "https://your-app.com/webhook"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "eventId": "evt_a1b2c3d4e5f6",
+  "message": "Event accepted for processing."
+}
+```
+
+**Error Response (400 Bad Request):**
+```json
+{
+  "status": 400,
+  "error": "Validation Failed",
+  "message": "Invalid request data",
+  "validationErrors": [
+    "Event type is required",
+    "Callback URL must be a valid HTTP/HTTPS URL"
+  ],
+  "timestamp": "2025-08-07T10:30:00",
+  "path": "/api/events"
+}
 ```
 
 ## Usage Example
@@ -127,8 +139,7 @@ mvn test
   "eventType": "EMAIL",
   "payload": {
     "recipient": "user@example.com",
-    "message": "Welcome to our service!",
-    "subject": "Welcome"
+    "message": "Welcome to our service!"
   },
   "callbackUrl": "https://your-app.com/webhook"
 }
@@ -140,8 +151,7 @@ mvn test
   "eventType": "SMS", 
   "payload": {
     "phoneNumber": "+1234567890",
-    "message": "Your verification code is 123456",
-    "senderId": "MyApp"
+    "message": "Your verification code is 123456"
   },
   "callbackUrl": "https://your-app.com/webhook"
 }
@@ -153,13 +163,43 @@ mvn test
   "eventType": "PUSH",
   "payload": {
     "deviceId": "device-token-123",
-    "message": "You have a new message",
-    "title": "New Message",
-    "badgeCount": 1
+    "message": "You have a new message"
   },
   "callbackUrl": "https://your-app.com/webhook"
 }
 ```
+
+## Callback Notifications
+
+When event processing completes (successfully or fails), the system sends a callback notification to the provided `callbackUrl`.
+
+### Successful Callback
+```json
+{
+  "eventId": "evt_a1b2c3d4e5f6",
+  "eventType": "EMAIL",
+  "status": "COMPLETED",
+  "processedAt": "2025-08-07T10:35:24"
+}
+```
+
+### Failed Callback
+```json
+{
+  "eventId": "evt_a1b2c3d4e5f6",
+  "eventType": "EMAIL", 
+  "status": "FAILED",
+  "processedAt": "2025-08-07T10:35:24",
+  "errorMessage": "Invalid email format: invalid-email"
+}
+```
+
+### Callback Features
+- **Retry Mechanism**: Up to 3 attempts with exponential backoff (1s, 2s, 3s delays)
+- **Asynchronous Processing**: Non-blocking callback execution
+- **Error Handling**: Comprehensive handling of network, client, and server errors
+- **Timeout Configuration**: Configurable connection and read timeouts
+- **Structured Payloads**: Consistent callback request format
 
 ## Logging
 
@@ -172,22 +212,13 @@ Structured logging with different levels:
 ## Technology Stack
 
 - **Java 17**: Modern Java features and performance
-- **Spring Boot 3.1.5**: Auto-configuration and dependency injection
+- **Spring Boot 3.1.5**: Auto-configuration and dependency injection  
+- **Spring Web**: RESTful API endpoints and HTTP client support
+- **Spring Validation**: Bean validation with comprehensive error handling
 - **Maven**: Build tool and dependency management
-- **JUnit 5 + Mockito**: Testing framework
-- **Jackson**: JSON processing
-- **Lombok**: Reduce boilerplate code
-- **JMX**: Monitoring and metrics
-
-## What's Next
-
-### Phase 3: REST API & Callback (Planned)
-- REST controller for event submission
-- Callback service for status notifications
-- Input validation and error handling
-
-### Phase 4: Concurrency & Lifecycle (Planned)
-- Application startup/shutdown hooks
-- Processor thread lifecycle management
-- Graceful shutdown implementation
+- **JUnit 5 + Mockito**: Testing framework with comprehensive test coverage
+- **Jackson**: JSON processing for API requests/responses and callbacks
+- **Lombok**: Reduce boilerplate code and improve readability
+- **JMX**: Monitoring and metrics for queue and processor health
+- **RestTemplate**: HTTP client for callback notifications
 

@@ -18,7 +18,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Manages separate BlockingQueues for each event type to ensure FIFO processing.
- * This class follows Single Responsibility Principle by focusing solely on queue management.
  * <p>
  * Features:
  * - Thread-safe queue operations using LinkedBlockingQueue
@@ -28,7 +27,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 @Component
 @Slf4j
-@ManagedResource(objectName = "com.eventnotification:type=EventQueueManager")
+@ManagedResource(objectName = "com.ravinder.eventnotificationsystem:type=EventQueueManager")
 public class EventQueueManager {
 
     private final EventNotificationProperties properties;

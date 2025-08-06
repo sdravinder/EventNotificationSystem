@@ -6,7 +6,9 @@ import com.ravinder.eventnotificationsystem.model.EventType;
 import com.ravinder.eventnotificationsystem.model.SmsEvent;
 import com.ravinder.eventnotificationsystem.model.SmsPayload;
 import com.ravinder.eventnotificationsystem.queue.EventQueueManager;
+import com.ravinder.eventnotificationsystem.service.CallbackService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Component;
 
@@ -19,18 +21,22 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-@ManagedResource(objectName = "com.eventnotification:type=SmsEventProcessor")
+@ManagedResource(objectName = "com.ravinder.eventnotificationsystem:type=SmsEventProcessor")
 public class SmsEventProcessor extends EventProcessor<SmsEvent> {
 
     /**
      * Constructor for SmsEventProcessor
      *
      * @param queueManager the queue manager for dequeuing events
+     * @param callbackService the callback service for notifications
      * @param properties   configuration properties for processing delays and failure rates
      */
+    @Autowired
     public SmsEventProcessor(EventQueueManager queueManager,
+                             CallbackService callbackService,
                              EventNotificationProperties properties) {
         super(queueManager,
+                callbackService,
                 EventType.SMS,
                 properties.getProcessing().getSms().getDelaySeconds(),
                 properties.getProcessing().getFailureRatePercent());
