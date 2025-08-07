@@ -7,6 +7,7 @@ import com.ravinder.eventnotificationsystem.model.EmailPayload;
 import com.ravinder.eventnotificationsystem.model.EventType;
 import com.ravinder.eventnotificationsystem.queue.EventQueueManager;
 import com.ravinder.eventnotificationsystem.service.CallbackService;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -123,5 +124,11 @@ public class EmailEventProcessor extends EventProcessor<EmailEvent> {
     @Override
     protected String getThreadName() {
         return "email-processor-thread";
+    }
+
+    @PreDestroy
+    public void onShutdown() {
+        log.info("Graceful shutdown: stopping EmailEventProcessor");
+        stop();
     }
 }

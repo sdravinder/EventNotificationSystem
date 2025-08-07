@@ -109,10 +109,8 @@ public abstract class EventProcessor<T extends Event> implements Runnable {
      */
     public void stop() {
         if (shutdown.compareAndSet(false, true)) {
-            log.info("Shutting down {} processor", eventType);
-            if (processingThread != null) {
-                processingThread.interrupt();
-            }
+            log.info("Shutting down {} processor (will finish remaining events)", eventType);
+            // Do not interrupt the thread; let it finish processing remaining events
         }
     }
 
@@ -123,18 +121,22 @@ public abstract class EventProcessor<T extends Event> implements Runnable {
     public void run() {
         log.info("Started processing loop for {} events", eventType);
 
-        while (running.get() && !shutdown.get()) {
+        while (running.get()) {
             try {
-                // Step 1: Dequeue event (blocking operation)
-                Event event = queueManager.dequeue(eventType);
-
-                // Step 2: Cast to specific event type for type safety
+                if (shutdown.get() && queueManager.isEmpty(eventType)) {
+                    break;
+                }
+                Event event = null;
+                if (!queueManager.isEmpty(eventType)) {
+                    event = queueManager.dequeue(eventType);
+                } else {
+                    // If queue is empty, sleep briefly to avoid busy-wait
+                    Thread.sleep(100);
+                    continue;
+                }
                 @SuppressWarnings("unchecked")
                 T typedEvent = (T) event;
-
-                // Step 3: Process the event using template method
                 processEvent(typedEvent);
-
             } catch (InterruptedException e) {
                 log.info("Processor for {} was interrupted", eventType);
                 Thread.currentThread().interrupt();

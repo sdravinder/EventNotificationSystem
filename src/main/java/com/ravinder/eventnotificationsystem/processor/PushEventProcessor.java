@@ -7,6 +7,7 @@ import com.ravinder.eventnotificationsystem.model.PushEvent;
 import com.ravinder.eventnotificationsystem.model.PushPayload;
 import com.ravinder.eventnotificationsystem.queue.EventQueueManager;
 import com.ravinder.eventnotificationsystem.service.CallbackService;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -127,5 +128,11 @@ public class PushEventProcessor extends EventProcessor<PushEvent> {
     @Override
     protected String getThreadName() {
         return "push-processor-thread";
+    }
+
+    @PreDestroy
+    public void onShutdown() {
+        log.info("Graceful shutdown: stopping PushEventProcessor");
+        stop();
     }
 }

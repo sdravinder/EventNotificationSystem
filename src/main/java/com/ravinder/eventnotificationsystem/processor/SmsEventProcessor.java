@@ -7,6 +7,7 @@ import com.ravinder.eventnotificationsystem.model.SmsEvent;
 import com.ravinder.eventnotificationsystem.model.SmsPayload;
 import com.ravinder.eventnotificationsystem.queue.EventQueueManager;
 import com.ravinder.eventnotificationsystem.service.CallbackService;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jmx.export.annotation.ManagedResource;
@@ -125,5 +126,11 @@ public class SmsEventProcessor extends EventProcessor<SmsEvent> {
     @Override
     protected String getThreadName() {
         return "sms-processor-thread";
+    }
+
+    @PreDestroy
+    public void onShutdown() {
+        log.info("Graceful shutdown: stopping SmsEventProcessor");
+        stop();
     }
 }
