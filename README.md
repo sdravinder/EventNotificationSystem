@@ -60,10 +60,10 @@ The system exposes JMX metrics for monitoring:
 - Thread status
 
 Access via JConsole or other JMX tools at:
-- `com.eventnotification:type=EventQueueManager`
-- `com.eventnotification:type=EmailEventProcessor`
-- `com.eventnotification:type=SmsEventProcessor`
-- `com.eventnotification:type=PushEventProcessor`
+- `com.ravinder.eventnotificationsystem:type=EventQueueManager`
+- `com.ravinder.eventnotificationsystem:type=EmailEventProcessor`
+- `com.ravinder.eventnotificationsystem:type=SmsEventProcessor`
+- `com.ravinder.eventnotificationsystem:type=PushEventProcessor`
 
 ## Event Processing Rules
 
@@ -211,12 +211,12 @@ Structured logging with different levels:
 
 ## Technology Stack
 
-- **Java 17**: Modern Java features and performance
-- **Spring Boot 3.1.5**: Auto-configuration and dependency injection  
+- **Java 21**: Modern Java features and performance
+- **Spring Boot 3.5.4**: Auto-configuration and dependency injection  
 - **Spring Web**: RESTful API endpoints and HTTP client support
 - **Spring Validation**: Bean validation with comprehensive error handling
 - **Maven**: Build tool and dependency management
-- **JUnit 5 + Mockito**: Testing framework with comprehensive test coverage
+- **JUnit + Mockito**: Testing framework with comprehensive test coverage
 - **Jackson**: JSON processing for API requests/responses and callbacks
 - **Lombok**: Reduce boilerplate code and improve readability
 - **JMX**: Monitoring and metrics for queue and processor health
